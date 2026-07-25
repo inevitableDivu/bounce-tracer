@@ -48,6 +48,7 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
 
     init {
         reactContext.addActivityEventListener(activityEventListener)
+        instance = this
     }
 
     override fun getName(): String = "EmojiTrackerModule"
@@ -122,5 +123,14 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
 
     companion object {
         private const val REQUEST_MEDIA_PROJECTION = 2001
+
+        @JvmStatic
+        var instance: EmojiTrackerModule? = null
+            private set
+
+        @JvmStatic
+        fun updateHUD(fps: Double, latencyMs: Double, xLand: Double, isTracking: Boolean) {
+            instance?.floatingHUDView?.updateTelemetry(fps, latencyMs, xLand, isTracking)
+        }
     }
 }
