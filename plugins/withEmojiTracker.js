@@ -137,10 +137,40 @@ const withCustomStrings = (config) => {
   });
 };
 
+/**
+ * Copies native Kotlin services into app package directory during prebuild
+ */
+const withNativeKotlinServices = (config) => {
+  return withDangerousMod(config, [
+    'android',
+    async (config) => {
+      const srcDir = path.join(
+        config.modRequest.projectRoot,
+        'modules/emoji-tracker/android/src/main/java/com/inevitabledivu/bouncetracer'
+      );
+      const destDir = path.join(
+        config.modRequest.platformProjectRoot,
+        'app/src/main/java/com/inevitabledivu/bouncetracer'
+      );
+
+      if (fs.existsSync(srcDir) && fs.existsSync(destDir)) {
+        const files = fs.readdirSync(srcDir);
+        files.forEach((file) => {
+          if (file.endsWith('.kt')) {
+            fs.copyFileSync(path.join(srcDir, file), path.join(destDir, file));
+          }
+        });
+      }
+      return config;
+    },
+  ]);
+};
+
 const withEmojiTrackerPlugin = (config) => {
   config = withCustomManifest(config);
   config = withCustomStrings(config);
   config = withAccessibilityConfigXml(config);
+  config = withNativeKotlinServices(config);
   return config;
 };
 
