@@ -16,10 +16,30 @@ class InstagramEmojiAccessibilityService : AccessibilityService() {
         instance = this
     }
 
+    private var lastGestureTime = 0L
+    private var lastTargetX = 0f
+    private val MIN_MOVE_THRESHOLD = 12f // pixels
+    private val GESTURE_MIN_INTERVAL_MS = 60L // strict 60ms throttle to prevent Android queue bloat
+
     /**
      * Injects horizontal paddle positioning stroke with sub-10ms latency
      */
     fun injectPaddleMove(targetX: Float, paddleY: Float) {
+        val now = System.currentTimeMillis()
+        val timeDiff = now - lastGestureTime
+        val posDiff = Math.abs(targetX - lastTargetX)
+
+        // Throttle gesture dispatches so we don't clog the Android Accessibility queue
+        if (timeDiff < GESTURE_MIN_INTERVAL_MS) {
+            return
+        }
+        if (posDiff < MIN_MOVE_THRESHOLD && timeDiff < 200L) {
+            return // Skip small adjustments unless it has been a while
+        }
+
+        lastGestureTime = now
+        lastTargetX = targetX
+
         val path = Path().apply {
             moveTo(targetX, paddleY)
             lineTo(targetX + 1f, paddleY)
@@ -30,14 +50,7 @@ class InstagramEmojiAccessibilityService : AccessibilityService() {
             .addStroke(stroke)
             .build()
 
-        dispatchGesture(gesture, object : GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription?) {
-                super.onCompleted(gestureDescription)
-            }
-            override fun onCancelled(gestureDescription: GestureDescription?) {
-                super.onCancelled(gestureDescription)
-            }
-        }, null)
+        dispatchGesture(gesture, null, null)
     }
 
     companion object {

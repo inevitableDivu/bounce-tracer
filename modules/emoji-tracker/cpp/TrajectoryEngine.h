@@ -22,6 +22,9 @@ private:
     Vector2D m_lastPos{-1.0, -1.0};
     Vector2D m_lastVel{0.0, 0.0};
     std::chrono::high_resolution_clock::time_point m_lastTime;
+    cv::Mat m_lastGray;
+    double m_predictedXLand = 540.0;
+    bool m_hasPrediction = false;
     
     const double ACCEL_THRESHOLD = 3500.0; // px/s^2 anomaly check limit
     const double PADDLE_Y = 1650.0;        // Standard screen Y coordinate of paddle

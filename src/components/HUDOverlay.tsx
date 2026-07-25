@@ -41,14 +41,29 @@ export const HUDOverlay: React.FC = () => {
     let intervalId: ReturnType<typeof setInterval>;
     if (isActive) {
       intervalId = setInterval(() => {
-        if (globalThis.EmojiTrackerModule) {
-          const data = globalThis.EmojiTrackerModule.getTelemetrySync();
-          setTelemetry(data);
+        if (trackerModule?.getLatestTelemetry) {
+          trackerModule.getLatestTelemetry()
+            .then((data: any) => {
+              if (data) {
+                setTelemetry({
+                  fps: data.fps ?? 0,
+                  processingTimeMs: data.processingTimeMs ?? 0,
+                  predictedXLand: data.predictedXLand ?? 0,
+                  velocityX: data.velocityX ?? 0,
+                  velocityY: data.velocityY ?? 0,
+                  isTracking: data.isTracking ?? false,
+                  anomalyDetected: data.anomalyDetected ?? false,
+                });
+              }
+            })
+            .catch((err: any) => {
+              console.warn('Failed to retrieve telemetry:', err);
+            });
         }
-      }, 16);
+      }, 100);
     }
     return () => clearInterval(intervalId);
-  }, [isActive]);
+  }, [isActive, trackerModule]);
 
   const handleToggleAutomation = async () => {
     if (!isActive) {

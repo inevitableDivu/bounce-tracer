@@ -1,21 +1,13 @@
 #pragma once
 
-#include <jsi/jsi.h>
-#include <ReactCommon/TurboModule.h>
 #include <atomic>
 #include <memory>
 
 namespace facebook::react {
 
-class JSI_EXPORT EmojiTrackerModule : public TurboModule {
+class EmojiTrackerModule {
 public:
-  EmojiTrackerModule(std::shared_ptr<CallInvoker> jsInvoker);
-  ~EmojiTrackerModule();
-
-  // TurboModule JSI Bindings
-  jsi::Value getTelemetrySync(jsi::Runtime& rt);
-  void setPaddleWidth(double width);
-
+  static void setPaddleWidth(double width);
   static void updateTelemetry(double fps, double processingTimeMs, double xLand, double vx, double vy, bool isTracking, bool anomaly);
   static double getPaddleWidth();
 

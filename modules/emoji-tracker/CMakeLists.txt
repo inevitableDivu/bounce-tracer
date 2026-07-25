@@ -4,6 +4,9 @@ project(emojitracker)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set OpenCV_DIR to the downloaded SDK in project root
+set(OpenCV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../opencv-sdk/sdk/native/jni)
+
 # Find OpenCV NDK package
 find_package(OpenCV REQUIRED)
 

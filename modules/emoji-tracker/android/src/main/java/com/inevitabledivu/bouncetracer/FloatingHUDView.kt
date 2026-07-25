@@ -6,6 +6,7 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -19,6 +20,7 @@ class FloatingHUDView(private val context: Context) {
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val TAG = "EmojiTracker_HUD"
 
     private var hudView: View? = null
     private var params: WindowManager.LayoutParams? = null
@@ -29,9 +31,14 @@ class FloatingHUDView(private val context: Context) {
     private var statusTextView: TextView? = null
 
     fun show() {
+        Log.d(TAG, "show() called")
         mainHandler.post {
-            if (hudView != null) return@post
+            if (hudView != null) {
+                Log.d(TAG, "show: HUD already exists")
+                return@post
+            }
 
+            Log.d(TAG, "show: Creating HUD LayoutParams")
             val layoutParamsType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             } else {
@@ -51,6 +58,7 @@ class FloatingHUDView(private val context: Context) {
                 y = 200
             }
 
+            Log.d(TAG, "show: Building HUD View hierarchy")
             val container = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 setBackgroundColor(Color.parseColor("#E60F172A"))
@@ -108,8 +116,11 @@ class FloatingHUDView(private val context: Context) {
 
             hudView = container
             try {
+                Log.d(TAG, "show: Adding view to WindowManager")
                 windowManager.addView(hudView, params)
+                Log.d(TAG, "show: View added successfully")
             } catch (e: Exception) {
+                Log.e(TAG, "show: Failed to add view to WindowManager", e)
                 // Ignore overlay add failure if permission was revoked
             }
         }
@@ -135,14 +146,18 @@ class FloatingHUDView(private val context: Context) {
     }
 
     fun hide() {
+        Log.d(TAG, "hide() called")
         mainHandler.post {
             if (hudView != null) {
                 try {
                     windowManager.removeView(hudView)
+                    Log.d(TAG, "hide: View removed successfully")
                 } catch (e: Exception) {
-                    // Ignore removal exception
+                    Log.e(TAG, "hide: Failed to remove view", e)
                 }
                 hudView = null
+            } else {
+                Log.d(TAG, "hide: HUD is already null")
             }
         }
     }
