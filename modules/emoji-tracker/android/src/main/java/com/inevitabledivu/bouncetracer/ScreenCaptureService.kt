@@ -14,7 +14,9 @@ import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
 import java.nio.ByteBuffer
 
@@ -33,6 +35,8 @@ class ScreenCaptureService : Service() {
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForegroundServiceNotification()
+
         val resultCode = intent?.getIntExtra("RESULT_CODE", -1) ?: -1
         val resultData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent?.getParcelableExtra("RESULT_DATA", Intent::class.java)
@@ -45,12 +49,17 @@ class ScreenCaptureService : Service() {
         val height = intent?.getIntExtra("HEIGHT", 2400) ?: 2400
         val densityDpi = intent?.getIntExtra("DPI", 400) ?: 400
 
-        startForegroundServiceNotification()
-
         if (resultCode != -1 && resultData != null) {
             val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             val projection = projectionManager.getMediaProjection(resultCode, resultData)
             if (projection != null) {
+                // Register mandatory callback required on Android 14+ (API 34+) to avoid process termination
+                projection.registerCallback(object : MediaProjection.Callback() {
+                    override fun onStop() {
+                        stopCapture()
+                    }
+                }, Handler(Looper.getMainLooper()))
+
                 startCapture(projection, width, height, densityDpi)
             }
         }
@@ -102,17 +111,26 @@ class ScreenCaptureService : Service() {
                 val rowStride = planes[0].rowStride
 
                 nativeProcessFrame(buffer, image.width, image.height, pixelStride, rowStride)
+            } catch (e: Exception) {
+                // Prevent unhandled exception crashes during background frame processing
             } finally {
                 image.close()
             }
         }, null)
     }
 
+    private fun stopCapture() {
+        virtualDisplay?.release()
+        virtualDisplay = null
+        imageReader?.close()
+        imageReader = null
+        mediaProjection?.stop()
+        mediaProjection = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        virtualDisplay?.release()
-        imageReader?.close()
-        mediaProjection?.stop()
+        stopCapture()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
