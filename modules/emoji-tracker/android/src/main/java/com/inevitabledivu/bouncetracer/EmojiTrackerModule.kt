@@ -84,8 +84,8 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun startScreenCapture(width: Double, height: Double, promise: Promise) {
-        val currentActivity = currentActivity
-        if (currentActivity == null) {
+        val activity = reactContext.currentActivity
+        if (activity == null) {
             promise.reject("NO_ACTIVITY", "Activity does not exist")
             return
         }
@@ -102,7 +102,7 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
 
         val projectionManager = reactContext.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         pendingPromise = promise
-        currentActivity.startActivityForResult(
+        activity.startActivityForResult(
             projectionManager.createScreenCaptureIntent(),
             REQUEST_MEDIA_PROJECTION
         )

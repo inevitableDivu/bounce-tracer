@@ -27,7 +27,7 @@ Java_com_inevitabledivu_bouncetracer_ScreenCaptureService_nativeProcessFrame(
   double paddleWidth = facebook::react::EmojiTrackerModule::getPaddleWidth();
   TrackingResult result = g_trajectoryEngine.processFrame(bufferPtr, width, height, rowStride, paddleWidth);
 
-  // Update shared telemetry metrics
+  // Update shared C++ / JSI telemetry metrics
   facebook::react::EmojiTrackerModule::updateTelemetry(
       result.fps,
       result.processingTimeMs,
@@ -38,8 +38,21 @@ Java_com_inevitabledivu_bouncetracer_ScreenCaptureService_nativeProcessFrame(
       result.anomalyDetected
   );
 
-  // Trigger Native AccessibilityService gesture dispatcher if target landing is valid
-  if (result.isValid) {
+  // Update Native Floating Overlay HUD UI on Android UI Thread
+  jclass trackerModuleClass = env->FindClass("com/inevitabledivu/bouncetracer/EmojiTrackerModule");
+  if (trackerModuleClass) {
+    jmethodID updateHudMethod = env->GetStaticMethodID(trackerModuleClass, "updateHUD", "(DDDZ)V");
+    if (updateHudMethod) {
+      env->CallStaticVoidMethod(trackerModuleClass, updateHudMethod,
+                                (jdouble)result.fps,
+                                (jdouble)result.processingTimeMs,
+                                (jdouble)result.x_land,
+                                (jboolean)result.isValid);
+    }
+  }
+
+  // Trigger Native AccessibilityService gesture dispatcher if target landing is valid and moving downwards
+  if (result.isValid && result.velocity.y > 0) {
     jclass accessibilityClass = env->FindClass("com/inevitabledivu/bouncetracer/InstagramEmojiAccessibilityService");
     if (accessibilityClass) {
       jmethodID dispatchMethod = env->GetStaticMethodID(accessibilityClass, "dispatchNativeTouch", "(FF)V");

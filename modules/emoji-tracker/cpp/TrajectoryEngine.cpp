@@ -8,44 +8,73 @@ TrajectoryEngine::TrajectoryEngine() {}
 TrackingResult TrajectoryEngine::processFrame(uint8_t* frameBuffer, int width, int height, int rowStride, double paddleWidth) {
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    // Zero-copy wrapping of buffer into OpenCV Mat
+    // Zero-copy wrapping of RGBA buffer into OpenCV Mat
     cv::Mat frame(height, width, CV_8UC4, frameBuffer, rowStride);
-    cv::Mat hsv, mask;
+    cv::Mat gray, hsv, maskColor, maskGray, combinedMask;
 
-    // Fast color segmentation / thresholding for emoji detection
+    // Convert to HSV and Grayscale for dual-mode emoji detection
     cv::cvtColor(frame, hsv, cv::COLOR_RGBA2RGB);
     cv::cvtColor(hsv, hsv, cv::COLOR_RGB2HSV);
+    cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY);
 
-    // Filter range targeting common emoji colors
-    cv::inRange(hsv, cv::Scalar(0, 100, 100), cv::Scalar(30, 255, 255), mask);
+    // 1. Color Saturation Mask (Catches all colored emojis: 🏀, 🏓, 🥑, 👾, 🟡, etc.)
+    cv::inRange(hsv, cv::Scalar(0, 30, 40), cv::Scalar(180, 255, 255), maskColor);
+
+    // 2. Adaptive Contrast Mask (Catches monochrome / B&W emojis like ⚽)
+    cv::threshold(gray, maskGray, 200, 255, cv::THRESH_BINARY);
+
+    // Combine masks
+    cv::bitwise_or(maskColor, maskGray, combinedMask);
+
+    // Crop ROI to game field (ignore status bar at top 10% and paddle/keyboard at bottom 15%)
+    int cropTop = static_cast<int>(height * 0.12);
+    int cropBottom = static_cast<int>(height * 0.85);
+    cv::Mat roi = combinedMask(cv::Range(cropTop, cropBottom), cv::Range(0, width));
 
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(roi, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    if (contours.empty()) {
-        auto endTime = std::chrono::high_resolution_clock::now();
-        double elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-        return {0.0, {0.0, 0.0}, false, false, 0.0, elapsedMs};
+    // Filter valid emoji ball contours by size/area (approx 40px to 180px diameter)
+    double minArea = 500.0;
+    double maxArea = 35000.0;
+
+    std::vector<cv::Point> bestContour;
+    double maxAreaFound = 0;
+
+    for (const auto& contour : contours) {
+        double area = cv::contourArea(contour);
+        if (area >= minArea && area <= maxArea && area > maxAreaFound) {
+            // Check aspect ratio to ensure shape is roughly square/circular (emoji ball)
+            cv::Rect bbox = cv::boundingRect(contour);
+            double aspectRatio = static_cast<double>(bbox.width) / bbox.height;
+            if (aspectRatio >= 0.6 && aspectRatio <= 1.4) {
+                maxAreaFound = area;
+                bestContour = contour;
+            }
+        }
     }
 
-    // Find largest contour (Emoji ball)
-    auto largest = std::max_element(contours.begin(), contours.end(),
-        [](const auto& a, const auto& b) { return cv::contourArea(a) < cv::contourArea(b); });
+    if (bestContour.empty()) {
+        auto endTime = std::chrono::high_resolution_clock::now();
+        double elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
+        return {0.0, {0.0, 0.0}, false, false, 60.0, elapsedMs};
+    }
 
-    cv::Moments m = cv::moments(*largest);
+    cv::Moments m = cv::moments(bestContour);
     if (m.m00 == 0) {
         auto endTime = std::chrono::high_resolution_clock::now();
         double elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-        return {0.0, {0.0, 0.0}, false, false, 0.0, elapsedMs};
+        return {0.0, {0.0, 0.0}, false, false, 60.0, elapsedMs};
     }
 
-    Vector2D currentPos{m.m10 / m.m00, m.m01 / m.m00};
+    // Offset Y coordinate back by cropTop offset
+    Vector2D currentPos{m.m10 / m.m00, (m.m01 / m.m00) + cropTop};
     auto currentTime = std::chrono::high_resolution_clock::now();
 
     if (m_lastPos.x < 0) {
         m_lastPos = currentPos;
         m_lastTime = currentTime;
-        return {0.0, {0.0, 0.0}, false, false, 0.0, 0.0};
+        return {0.0, {0.0, 0.0}, false, false, 60.0, 0.0};
     }
 
     double dt = std::chrono::duration<double>(currentTime - m_lastTime).count();
@@ -77,8 +106,8 @@ TrackingResult TrajectoryEngine::processFrame(uint8_t* frameBuffer, int width, i
     double elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
 
     if (anomaly || currentVel.y <= 0) {
-        // Ball is moving upwards or trajectory is anomalous; reset target
-        return {0.0, currentVel, false, anomaly, fps, elapsedMs};
+        // Ball is moving upwards or trajectory is anomalous; show tracking active but no downward paddle move needed yet
+        return {currentPos.x, currentVel, true, anomaly, fps, elapsedMs};
     }
 
     // --- Deterministic Elastic Bounce Prediction ---
