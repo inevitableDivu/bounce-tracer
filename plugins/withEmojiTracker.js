@@ -181,11 +181,30 @@ const withNativeKotlinServices = (config) => {
   ]);
 };
 
+/**
+ * Injects add(EmojiTrackerPackage()) into MainApplication.kt
+ */
+const withCustomMainApplication = (config) => {
+  const { withMainApplication } = require('@expo/config-plugins');
+  return withMainApplication(config, (config) => {
+    let contents = config.modResults.contents;
+    if (!contents.includes('add(EmojiTrackerPackage())')) {
+      contents = contents.replace(
+        'PackageList(this).packages.apply {',
+        'PackageList(this).packages.apply {\n          add(EmojiTrackerPackage())'
+      );
+    }
+    config.modResults.contents = contents;
+    return config;
+  });
+};
+
 const withEmojiTrackerPlugin = (config) => {
   config = withCustomManifest(config);
   config = withCustomStrings(config);
   config = withAccessibilityConfigXml(config);
   config = withNativeKotlinServices(config);
+  config = withCustomMainApplication(config);
   return config;
 };
 
