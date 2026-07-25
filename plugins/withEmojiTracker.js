@@ -44,7 +44,7 @@ const withCustomManifest = (config) => {
       mainApplication.service = [];
     }
 
-    const serviceName = 'com.emojibot.InstagramEmojiAccessibilityService';
+    const serviceName = 'com.inevitabledivu.bouncetracer.InstagramEmojiAccessibilityService';
     const hasService = mainApplication.service.some(
       (s) => s.$['android:name'] === serviceName
     );

@@ -1,4 +1,4 @@
-package com.emojibot
+package com.inevitabledivu.bouncetracer
 
 import android.app.Service
 import android.content.Intent

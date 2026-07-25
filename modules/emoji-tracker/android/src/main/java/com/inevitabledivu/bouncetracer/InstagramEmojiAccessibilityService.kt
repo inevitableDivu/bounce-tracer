@@ -1,4 +1,4 @@
-package com.emojibot
+package com.inevitabledivu.bouncetracer
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription

@@ -9,8 +9,9 @@
     "ios": {
       "supportsTablet": true
     },
+    "scheme": "inevitabledivu",
     "android": {
-      "package": "com.emojibot.bouncetracer",
+      "package": "com.inevitabledivu.bouncetracer",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

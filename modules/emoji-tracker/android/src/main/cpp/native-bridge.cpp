@@ -9,7 +9,7 @@
 static TrajectoryEngine g_trajectoryEngine;
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_emojibot_ScreenCaptureService_nativeProcessFrame(
+Java_com_inevitabledivu_bouncetracer_ScreenCaptureService_nativeProcessFrame(
     JNIEnv* env,
     jobject instance,
     jobject byteBuffer,
@@ -40,7 +40,7 @@ Java_com_emojibot_ScreenCaptureService_nativeProcessFrame(
 
   // Trigger Native AccessibilityService gesture dispatcher if target landing is valid
   if (result.isValid) {
-    jclass accessibilityClass = env->FindClass("com/emojibot/InstagramEmojiAccessibilityService");
+    jclass accessibilityClass = env->FindClass("com/inevitabledivu/bouncetracer/InstagramEmojiAccessibilityService");
     if (accessibilityClass) {
       jmethodID dispatchMethod = env->GetStaticMethodID(accessibilityClass, "dispatchNativeTouch", "(FF)V");
       if (dispatchMethod) {
