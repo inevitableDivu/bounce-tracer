@@ -79,6 +79,21 @@ const withCustomManifest = (config) => {
       });
     }
 
+    const captureServiceName = 'com.inevitabledivu.bouncetracer.ScreenCaptureService';
+    const hasCaptureService = mainApplication.service.some(
+      (s) => s.$['android:name'] === captureServiceName
+    );
+
+    if (!hasCaptureService) {
+      mainApplication.service.push({
+        $: {
+          'android:name': captureServiceName,
+          'android:exported': 'false',
+          'android:foregroundServiceType': 'mediaProjection',
+        },
+      });
+    }
+
     return config;
   });
 };
