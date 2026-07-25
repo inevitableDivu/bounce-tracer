@@ -1,45 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface Telemetry {
-  fps: number;
-  processingTimeMs: number;
-  predictedXLand: number;
-  velocityX: number;
-  velocityY: number;
-  isTracking: boolean;
-  anomalyDetected: boolean;
+    fps: number;
+    processingTimeMs: number;
+    predictedXLand: number;
+    velocityX: number;
+    velocityY: number;
+    isTracking: boolean;
+    anomalyDetected: boolean;
 }
 
 export const HUDOverlay: React.FC = () => {
-  const insets = useSafeAreaInsets();
-  const [telemetry, setTelemetry] = useState<Telemetry>({
-    fps: 0,
-    processingTimeMs: 0,
-    predictedXLand: 0,
-    velocityX: 0,
-    velocityY: 0,
-    isTracking: false,
-    anomalyDetected: false,
-  });
-  const [isActive, setIsActive] = useState<boolean>(false);
+    const insets = useSafeAreaInsets();
+    const [telemetry, setTelemetry] = useState<Telemetry>({
+        fps: 0,
+        processingTimeMs: 0,
+        predictedXLand: 0,
+        velocityX: 0,
+        velocityY: 0,
+        isTracking: false,
+        anomalyDetected: false,
+    });
+    const [isActive, setIsActive] = useState<boolean>(false);
 
-  useEffect(() => {
-    let intervalId: any;
-    if (isActive) {
-      intervalId = setInterval(() => {
-        if ((global as any).EmojiTrackerModule) {
-          const data = (global as any).EmojiTrackerModule.getTelemetrySync();
-          setTelemetry(data);
+    useEffect(() => {
+        let intervalId: any;
+        if (isActive) {
+            intervalId = setInterval(() => {
+                if ((globalThis as any).EmojiTrackerModule) {
+                    const data = (
+                        globalThis as any
+                    ).EmojiTrackerModule.getTelemetrySync();
+                    setTelemetry(data);
+                }
+            }, 16);
         }
-      }, 16);
-    }
-    return () => clearInterval(intervalId);
-  }, [isActive]);
+        return () => clearInterval(intervalId);
+    }, [isActive]);
 
-  return (
-    <View style={[styles.hudContainer, { top: Math.max(insets.top + 10, 20) }]}>
+    return (
+        <View
+            style={[
+                styles.hudContainer,
+                { top: Math.max(insets.top + 10, 20) },
+            ]}
+        >
             <Text style={styles.title}>🤖 BOUNCE TRACER BOT</Text>
             <View style={styles.row}>
                 <Text style={styles.label}>FPS:</Text>
