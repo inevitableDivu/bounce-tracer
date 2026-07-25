@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, NativeModules } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, NativeModules, TurboModuleRegistry, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { EmojiTrackerModule } = NativeModules;
+const NativeTracker = (TurboModuleRegistry.get('EmojiTrackerModule') || NativeModules.EmojiTrackerModule) as any;
 
 export interface Telemetry {
   fps: number;
@@ -29,8 +29,8 @@ export const HUDOverlay: React.FC = () => {
   const [hasOverlayPerm, setHasOverlayPerm] = useState<boolean>(true);
 
   useEffect(() => {
-    if (EmojiTrackerModule?.isOverlayPermissionGranted) {
-      EmojiTrackerModule.isOverlayPermissionGranted().then((granted: boolean) => {
+    if (NativeTracker?.isOverlayPermissionGranted) {
+      NativeTracker.isOverlayPermissionGranted().then((granted: boolean) => {
         setHasOverlayPerm(granted);
       });
     }
@@ -51,33 +51,41 @@ export const HUDOverlay: React.FC = () => {
 
   const handleToggleAutomation = async () => {
     if (!isActive) {
+      if (!NativeTracker?.startScreenCapture) {
+        Alert.alert(
+          'Module Error',
+          'EmojiTrackerModule native screen capture interface was not detected on this build. Please re-run prebuild.'
+        );
+        return;
+      }
       try {
-        if (EmojiTrackerModule?.startScreenCapture) {
-          await EmojiTrackerModule.startScreenCapture(1080, 2400);
-          setIsActive(true);
-        } else {
-          setIsActive(true);
-        }
+        await NativeTracker.startScreenCapture(1080, 2400);
+        setIsActive(true);
       } catch (err: any) {
         console.warn('Capture failed or denied:', err);
+        Alert.alert('Permission Required', 'Screen capture permission was not granted.');
       }
     } else {
-      if (EmojiTrackerModule?.stopScreenCapture) {
-        EmojiTrackerModule.stopScreenCapture();
+      if (NativeTracker?.stopScreenCapture) {
+        NativeTracker.stopScreenCapture();
       }
       setIsActive(false);
     }
   };
 
   const handleGrantOverlay = () => {
-    if (EmojiTrackerModule?.requestOverlayPermission) {
-      EmojiTrackerModule.requestOverlayPermission();
+    if (NativeTracker?.requestOverlayPermission) {
+      NativeTracker.requestOverlayPermission();
+    } else {
+      Alert.alert('Notice', 'Overlay permission launcher not found.');
     }
   };
 
   const handleGrantAccessibility = () => {
-    if (EmojiTrackerModule?.requestAccessibilityPermission) {
-      EmojiTrackerModule.requestAccessibilityPermission();
+    if (NativeTracker?.requestAccessibilityPermission) {
+      NativeTracker.requestAccessibilityPermission();
+    } else {
+      Alert.alert('Notice', 'Accessibility permission launcher not found.');
     }
   };
 
