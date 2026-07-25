@@ -101,7 +101,7 @@ const withAccessibilityConfigXml = (config) => {
 
       const xmlContent = `<?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityEventTypes="typeAllMasks"
+    android:accessibilityEventTypes="typeAllMask"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows"
     android:canPerformGestures="true"
@@ -118,8 +118,28 @@ const withAccessibilityConfigXml = (config) => {
   ]);
 };
 
+/**
+ * Injects accessibility_service_description into strings.xml
+ */
+const withCustomStrings = (config) => {
+  const { withStringsXml } = require('@expo/config-plugins');
+  return withStringsXml(config, (config) => {
+    config.modResults = require('@expo/config-plugins').AndroidConfig.Strings.setStringItem(
+      [
+        {
+          $: { name: 'accessibility_service_description' },
+          _: 'Automated Instagram Emoji Game Touch Automation Service',
+        },
+      ],
+      config.modResults
+    );
+    return config;
+  });
+};
+
 const withEmojiTrackerPlugin = (config) => {
   config = withCustomManifest(config);
+  config = withCustomStrings(config);
   config = withAccessibilityConfigXml(config);
   return config;
 };
