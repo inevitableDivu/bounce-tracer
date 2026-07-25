@@ -26,13 +26,12 @@ export const HUDOverlay: React.FC = () => {
     const [isActive, setIsActive] = useState<boolean>(false);
 
     useEffect(() => {
-        let intervalId: any;
+        let intervalId: ReturnType<typeof setInterval>;
         if (isActive) {
             intervalId = setInterval(() => {
-                if ((globalThis as any).EmojiTrackerModule) {
-                    const data = (
-                        globalThis as any
-                    ).EmojiTrackerModule.getTelemetrySync();
+                if (globalThis.EmojiTrackerModule) {
+                    const data =
+                        globalThis.EmojiTrackerModule.getTelemetrySync();
                     setTelemetry(data);
                 }
             }, 16);
