@@ -1,21 +1,38 @@
-The MIT License (MIT)
+Custom Non-Commercial License
 
-Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
+Copyright (c) 2026-present inevitableDivu
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+PERMITTED USE:
+- Personal, non-commercial projects
+- Internal organizational use (no external commercial benefit)
+- Educational and academic purposes
+- Private research and development
+- Forking and modifying the software for personal use
+- Distributing modifications only for non-commercial purposes
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PROHIBITED USE:
+You may NOT use this software or any derivative works for any commercial purpose, including but not limited to:
+- Selling or licensing the software or any modifications
+- Offering services (SaaS, hosting, managed services) based on this software
+- Including this software in commercial products or services for which you charge fees
+- Commercial distribution in any form
+- Generating revenue directly or indirectly from this software or modifications
+- Distributing modified versions for commercial gain
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+TERMS:
+1. You may fork and modify this software freely for personal, non-commercial use
+2. You may distribute your modifications to others, but only for non-commercial purposes
+3. Any distribution must include this license and retain all copyright notices
+4. Modified versions must carry the same non-commercial restriction
+
+DISCLAIMER:
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+NO COMMERCIAL LICENSE:
+There is no option to obtain a commercial license. This software is permanently
+restricted from commercial use and commercial distribution in perpetuity.
