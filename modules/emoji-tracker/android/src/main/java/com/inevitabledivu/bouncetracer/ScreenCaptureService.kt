@@ -18,6 +18,8 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import android.view.Display
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import java.nio.ByteBuffer
 
@@ -34,6 +36,15 @@ class ScreenCaptureService : Service() {
         height: Int,
         pixelStride: Int,
         rowStride: Int
+    )
+
+    private external fun nativeSetCalibration(
+        screenWidth: Int,
+        screenHeight: Int,
+        paddleY: Double,
+        frameRateHz: Double,
+        leadFrames: Double,
+        restitution: Double
     )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -115,6 +126,29 @@ class ScreenCaptureService : Service() {
     private fun startCapture(projection: MediaProjection, width: Int, height: Int, densityDpi: Int) {
         Log.d(TAG, "startCapture: Initializing ImageReader and VirtualDisplay")
         this.mediaProjection = projection
+
+        // Phase 3.6: detect actual display refresh rate instead of assuming 60Hz.
+        val display: Display? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            (getSystemService(Context.DISPLAY_MANAGER) as DisplayManager).getDisplay(Display.DEFAULT_DISPLAY)
+        } else {
+            @Suppress("DEPRECATION")
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        }
+        var refreshHz = 60.0
+        if (display != null) {
+            val reported = display.refreshRate.toDouble()
+            // Sanity-check the reported rate; fall back to 60Hz if implausible.
+            if (reported in 30.0..240.0) refreshHz = reported
+        }
+        Log.d(TAG, "startCapture: Detected refresh rate ${refreshHz}Hz")
+
+        // Push calibration (screen geometry + refresh cadence) to the native engine.
+        try {
+            nativeSetCalibration(width, height, 1650.0, refreshHz, 5.0, 1.0)
+        } catch (e: UnsatisfiedLinkError) {
+            Log.e(TAG, "startCapture: nativeSetCalibration not available", e)
+        }
+
         imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
 
         try {

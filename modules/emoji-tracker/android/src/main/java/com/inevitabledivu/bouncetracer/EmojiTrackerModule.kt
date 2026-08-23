@@ -26,7 +26,14 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
     private var lastFps = 0.0
     private var lastLatency = 0.0
     private var lastXLand = 0.0
+    private var lastVx = 0.0
+    private var lastVy = 0.0
+    private var lastAx = 0.0
+    private var lastAy = 0.0
+    private var lastTrackId = -1
+    private var lastTrackCount = 0
     private var lastIsTracking = false
+    private var lastAnomaly = false
 
     private val activityEventListener: ActivityEventListener = object : BaseActivityEventListener() {
         override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
@@ -161,10 +168,14 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
             putDouble("fps", lastFps)
             putDouble("processingTimeMs", lastLatency)
             putDouble("predictedXLand", lastXLand)
-            putDouble("velocityX", 0.0)
-            putDouble("velocityY", 0.0)
+            putDouble("velocityX", lastVx)
+            putDouble("velocityY", lastVy)
+            putDouble("accelX", lastAx)
+            putDouble("accelY", lastAy)
+            putInt("trackId", lastTrackId)
+            putInt("trackCount", lastTrackCount)
             putBoolean("isTracking", lastIsTracking)
-            putBoolean("anomalyDetected", false)
+            putBoolean("anomalyDetected", lastAnomaly)
         }
         promise.resolve(map)
     }
@@ -172,6 +183,19 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun setPaddleWidth(width: Double) {
         // Updated in C++ NativeModule
+    }
+
+    @ReactMethod
+    fun setCalibration(
+        screenWidth: Double,
+        screenHeight: Double,
+        paddleY: Double,
+        frameRateHz: Double,
+        leadFrames: Double,
+        restitution: Double
+    ) {
+        // Calibration is applied natively via JNI (nativeSetCalibration);
+        // this JS entry point exists for future direct use.
     }
 
     companion object {
@@ -189,6 +213,27 @@ class EmojiTrackerModule(private val reactContext: ReactApplicationContext) :
                 inst.lastXLand = xLand
                 inst.lastIsTracking = isTracking
                 inst.floatingHUDView?.updateTelemetry(fps, latencyMs, xLand, isTracking)
+            }
+        }
+
+        @JvmStatic
+        fun updateExtendedTelemetry(
+            vx: Double,
+            vy: Double,
+            ax: Double,
+            ay: Double,
+            trackId: Int,
+            trackCount: Int,
+            anomaly: Boolean
+        ) {
+            instance?.let { inst ->
+                inst.lastVx = vx
+                inst.lastVy = vy
+                inst.lastAx = ax
+                inst.lastAy = ay
+                inst.lastTrackId = trackId
+                inst.lastTrackCount = trackCount
+                inst.lastAnomaly = anomaly
             }
         }
     }
