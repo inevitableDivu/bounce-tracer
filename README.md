@@ -176,4 +176,4 @@ The anomaly gate no longer discards predictions: large Kalman innovations flag t
 
 Contributions are welcome! Please ensure you follow Expo SDK 57 native development guidelines.
 
-This project is licensed under the MIT License. See [LICENSE](file:///home/inevitable/Projects/bounce-tracer/LICENSE) for details.
+This project is licensed under a Custom Non-Commercial License. See [LICENSE](LICENSE) for details.
